@@ -1,6 +1,5 @@
 package com.example.catslistcoroutines.views
 
-import android.R
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,20 +9,21 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BrokenImage
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
@@ -49,9 +49,8 @@ fun PetList(modifier: Modifier = Modifier) {
 
         AnimatedVisibility(visible = petsUIState.pets.isNotEmpty()) {
             LazyColumn {
-                items(petsUIState.pets) { pet ->
-                    PetListItem(cat = pet)
-                }
+                items(petsUIState.pets, key = { cat -> cat.id })
+                { pet -> PetListItem(cat = pet) }
             }
         }
         AnimatedVisibility(visible = petsUIState.error != null) {
@@ -72,49 +71,43 @@ fun PetListItem(cat: Cat) {
                 .fillMaxWidth()
                 .padding(bottom = 10.dp)
         ) {
-            var statusMessage by remember { mutableStateOf("") }
-
-            AsyncImage(
-                //model = "http://www.anbo-easj.dk/cv/andersBorjesson.jpg",
-                //model = "https://cataas.com/cat/${cat.id}",
-                model = ImageRequest.Builder(LocalContext.current)
-                    //.data("https://cataas.com/cat")
+            //var statusMessage by remember { mutableStateOf("") }
+            val context = LocalContext.current
+            val model = remember(cat.id) {
+                ImageRequest.Builder(context)
                     .data("https://cataas.com/cat/${cat.id}")
                     .crossfade(true)
-                    .listener(
-                        onStart = {},
-                        onSuccess = { request, metadata -> statusMessage = "Loaded" },
-                        onError = { request, throwable ->
-                            statusMessage =
-                                "error loading ${request.data}: ${throwable?.throwable?.message}"
-                        }
-                    )
-
-                    .build(),
-                contentDescription = "Cute cat",
-                placeholder = painterResource(R.drawable.ic_menu_day),
-                error = painterResource(R.drawable.arrow_down_float),
+                    /*.listener(
+                    onStart = {},
+                    onSuccess = { request, result -> statusMessage = "Loaded" },
+                    onError = { request, result ->
+                        statusMessage =
+                            "error loading ${request.data}: ${result.throwable.message}"
+                    }                )*/
+                    .build()
+            }
+            AsyncImage(
+                model = model,
+                contentDescription = "Cat with id ${cat.id}",
+                placeholder = rememberVectorPainter(Icons.Default.Image),
+                error = rememberVectorPainter(Icons.Default.BrokenImage),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp),
                 contentScale = ContentScale.FillWidth,
 
                 )
-            Text(text = "Id:" + cat.id)
-            if (statusMessage.isNotEmpty()) Text(text = "status:" + statusMessage)
-            FlowRow(
-                modifier = Modifier
-                    .padding(start = 6.dp, end = 6.dp)
-            ) {
-                repeat(cat.tags.size) {
-                    SuggestionChip(
-                        modifier = Modifier
-                            .padding(start = 3.dp, end = 3.dp),
-                        onClick = { },
-                        label = {
-                            Text(text = cat.tags[it])
-                        }
-                    )
+            if (cat.tags.isNotEmpty()) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    cat.tags.forEach { tag ->
+                        SuggestionChip(
+                            onClick = { },
+                            label = { Text(text = tag) }
+                        )
+                    }
                 }
             }
         }

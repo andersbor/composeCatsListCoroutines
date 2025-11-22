@@ -6,11 +6,9 @@ import com.example.catslistcoroutines.data.PetsRepositoryImpl
 import com.example.catslistcoroutines.viewmodel.PetsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
-import okhttp3.MediaType.Companion.toMediaType
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
 // jakewarton is now official retrofit
 
@@ -27,7 +25,8 @@ val appModules = module {
         Retrofit.Builder()
             .addConverterFactory(
                 GsonConverterFactory.create()
-                //Json.asConverterFactory("application/json; charset=UTF8".toMediaType())
+                //json.asConverterFactory("application/json; charset=UTF8".toMediaType())
+                // retrofit converter not working, using Gson
             )
         .baseUrl("https://cataas.com/api/")
         .build()

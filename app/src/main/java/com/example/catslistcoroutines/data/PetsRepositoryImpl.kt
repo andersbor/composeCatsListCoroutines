@@ -1,6 +1,7 @@
 package com.example.catslistcoroutines.data
 
 import android.util.Log
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
@@ -14,12 +15,19 @@ class PetsRepositoryImpl(
             try {
                 val response = catsAPI.getCats("cute")
                 Log.d("ABCDEF", "getPets: $response")
+
                 if (response.isSuccessful) {
-                    // TODO check on !!
-                    NetworkResult.Success(response.body()!!)
+                    val body = response.body()
+                    if (body != null) {
+                        NetworkResult.Success(body)
+                    } else {
+                        NetworkResult.Error("Response body is null")
+                    }
                 } else {
-                    NetworkResult.Error(response.message())
+                    NetworkResult.Error("API Error ${response.code()}: ${response.message()}")
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.e("ABCDEF", "getPets catch: $e")
                 NetworkResult.Error(e.message ?: "Unknown error")
